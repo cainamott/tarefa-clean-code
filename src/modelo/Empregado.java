@@ -5,6 +5,14 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Empregado {
+
+    private static final int    CPF_TAMANHO          = 11;
+    private static final int    CPF_TOTAL_DIGITOS    = 9;
+    private static final int    OFFSET_ASCII_ZERO    = 48;  // '0' em ASCII
+    private static final int    PESO_INICIAL_PRIMEIRO = 10;
+    private static final int    PESO_INICIAL_SEGUNDO  = 11;
+    private static final char   SEPARADOR_CAMPOS     = '#';
+
     private String cpf;
     private String nome;
     private String endereco;
@@ -33,15 +41,16 @@ public class Empregado {
         return campos;
     }
 
-    // Método público APENAS para chamada de métodos com lógica complexa
+    // Metodo público APENAS para chamada de métodos com lógica complexa
     public boolean isCPF(String cpf) {
-        if (cpf.length() != 11 || temSequenciaRepetida(cpf)) {
+        if (cpf.length() != CPF_TAMANHO || temSequenciaRepetida(cpf)) {
             return false;
         }
         try {
-            char primeiroDigito = calcularDigitoVerificador(cpf, 10, 9);
-            char segundoDigito  = calcularDigitoVerificador(cpf, 11, 10);
-            return primeiroDigito == cpf.charAt(9) && segundoDigito == cpf.charAt(10);
+            char primeiroDigito = calcularDigitoVerificador(cpf, PESO_INICIAL_PRIMEIRO, CPF_TOTAL_DIGITOS);
+            char segundoDigito  = calcularDigitoVerificador(cpf, PESO_INICIAL_SEGUNDO,  CPF_TAMANHO - 1);
+            return primeiroDigito == cpf.charAt(CPF_TAMANHO - 2)
+                    && segundoDigito  == cpf.charAt(CPF_TAMANHO - 1);
         } catch (InputMismatchException e) {
             return false;
         }
@@ -50,7 +59,7 @@ public class Empregado {
     // extração da responsabilidade de detectar sequências inválidas
     private boolean temSequenciaRepetida(String cpf) {
         for (int digito = 0; digito <= 9; digito++) {
-            if (cpf.equals(String.valueOf(digito).repeat(11))) {
+            if (cpf.equals(String.valueOf(digito).repeat(CPF_TAMANHO))) {
                 return true;
             }
         }
@@ -63,11 +72,12 @@ public class Empregado {
         int soma = 0;
         int peso = pesoInicial;
         for (int i = 0; i < limite; i++) {
-            soma += (cpf.charAt(i) - 48) * peso;
+            soma += (cpf.charAt(i) - OFFSET_ASCII_ZERO) * peso;
             peso--;
         }
-        int resto = 11 - soma % 11;
-        return (resto != 10 && resto != 11) ? (char)(resto + 48) : '0';
+        int resto = PESO_INICIAL_SEGUNDO - soma % PESO_INICIAL_SEGUNDO;
+        return (resto != PESO_INICIAL_PRIMEIRO && resto != PESO_INICIAL_SEGUNDO)
+                ? (char)(resto + OFFSET_ASCII_ZERO) : '0';
     }
 
     @Override
